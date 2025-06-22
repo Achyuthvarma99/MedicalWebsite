@@ -7,7 +7,7 @@ trigger:
 - master
 
 pool:
-  vmImage: Default
+  vmImage: dev-agent
 
 steps:
 - task: ArchiveFiles@2
