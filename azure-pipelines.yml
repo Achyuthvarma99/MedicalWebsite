@@ -2,19 +2,29 @@ trigger:
 - master
 
 pool:
-  name: dev-pipeline-agent  # ✅ Must match the pool name from Azure DevOps
+  name: dev-pipeline-agent
+
+variables:
+  imageName: 'medicalstore-app'
+  tag: '$(Build.BuildId)'
 
 steps:
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)'
-    includeRootFolder: false
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/site.zip'
-    replaceExistingArchive: true
 
-- task: PublishBuildArtifacts@1
+# Step 1: Login to Azure Container Registry
+- task: Docker@2
+  displayName: 'Build and Push Docker image to ACR'
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
+    containerRegistry: 'pharmacy-acr'  # ⚠️ Name of your Azure DevOps service connection to ACR
+    repository: '$(imageName)'
+    command: 'buildAndPush'
+    Dockerfile: '**/Dockerfile'
+    tags: |
+      $(tag)
+
+# Step 2: Deploy to Azure App Service (Linux Container)
+- task: AzureWebAppContainer@1
+  displayName: 'Deploy to Azure App Service (medical-store)'
+  inputs:
+    azureSubscription: 'azure-service-connection-dev'  # ⚠️ Name of your Azure DevOps ARM service connection
+    appName: 'medical-store'
+    containers: 'medicalwebsite.azurecr.io/$(imageName):$(tag)'
