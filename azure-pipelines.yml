@@ -1,30 +1,31 @@
 trigger:
-- master
+  - main
 
 pool:
   name: dev-pipeline-agent
 
 variables:
-  imageName: 'medicalstore-app'
-  tag: '$(Build.BuildId)'
+  imageName: 'medicalwebsite'
 
 steps:
-
-# Step 1: Login to Azure Container Registry
 - task: Docker@2
-  displayName: 'Build and Push Docker image to ACR'
+  displayName: 'Login to ACR'
   inputs:
-    containerRegistry: 'pharmacy-acr'  # ⚠️ Name of your Azure DevOps service connection to ACR
-    repository: '$(imageName)'
-    command: 'buildAndPush'
-    Dockerfile: '**/Dockerfile'
-    tags: |
-      $(tag)
+    command: login
+    containerRegistry: 'medicalwebsite-acr'  # Service connection name (create this in Azure DevOps)
 
-# Step 2: Deploy to Azure App Service (Linux Container)
-- task: AzureWebAppContainer@1
-  displayName: 'Deploy to Azure App Service (medical-store)'
+- task: Docker@2
+  displayName: 'Build and Push Docker Image'
   inputs:
-    azureSubscription: 'azure-service-connection-dev'  # ⚠️ Name of your Azure DevOps ARM service connection
-    appName: 'medical-store'
-    containers: 'medicalwebsite.azurecr.io/$(imageName):$(tag)'
+    command: buildAndPush
+    repository: $(imageName)
+    dockerfile: '**/Dockerfile'
+    tags: |
+      latest
+
+- task: AzureWebAppContainer@1
+  displayName: 'Deploy to App Service'
+  inputs:
+    azureSubscription: 'medicalwebsite-sub'   # Azure DevOps service connection
+    appName: 'medical-store'                  # Your App Service name
+    containers: 'medicalwebsite.azurecr.io/$(imageName):latest'
