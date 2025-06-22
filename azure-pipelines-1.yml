@@ -1,17 +1,12 @@
-# HTML
-# Archive your static HTML project and save it with the build record.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- master
+- main
 
 pool:
-  vmImage: myagent
+  name: Default
 
 steps:
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(build.sourcesDirectory)'
-    includeRootFolder: false
-- task: PublishBuildArtifacts@1
+- script: |
+    echo "✅ Hello from agent"
+    uname -a
+    df -h
+  displayName: "Test Agent Connection"
