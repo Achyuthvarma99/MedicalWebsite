@@ -12,7 +12,7 @@ steps:
   displayName: 'Login to ACR'
   inputs:
     command: login
-    containerRegistry: 'medicalwebsite-acr'  # Service connection name (create this in Azure DevOps)
+    containerRegistry: 'azure-service-connection-dev'  # Service connection name (create this in Azure DevOps)
 
 - task: Docker@2
   displayName: 'Build and Push Docker Image'
@@ -26,6 +26,6 @@ steps:
 - task: AzureWebAppContainer@1
   displayName: 'Deploy to App Service'
   inputs:
-    azureSubscription: 'medicalwebsite-sub'   # Azure DevOps service connection
+    azureSubscription: 'azure-service-connection-dev'   # Azure DevOps service connection
     appName: 'medical-store'                  # Your App Service name
     containers: 'medicalwebsite.azurecr.io/$(imageName):latest'
