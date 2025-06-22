@@ -2,7 +2,7 @@ trigger:
 - master
 
 pool:
-  name: dev-pipeline-agent   # 👈 This tells Azure to use your self-hosted agent
+  name: dev-pipeline-agent  # ✅ Must match the pool name from Azure DevOps
 
 steps:
 - task: ArchiveFiles@2
@@ -10,7 +10,7 @@ steps:
     rootFolderOrFile: '$(Build.SourcesDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/html-site.zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/site.zip'
     replaceExistingArchive: true
 
 - task: PublishBuildArtifacts@1
