@@ -47,7 +47,7 @@ jobs:
       - name: Deploy to EKS
         run: |
           kubectl set image deployment/$DEPLOYMENT dev-twallet-container=794038257373.dkr.ecr.ap-south-1.amazonaws.com/$ECR_REPO:$IMAGE_TAG -n $NAMESPACE
-          if ! kubectl rollout status deployment/$DEPLOYMENT -n $NAMESPACE --timeout=60s; then
+          if ! kubectl rollout status deployment/$DEPLOYMENT -n $NAMESPACE --timeout=180s; then
             echo "Deployment failed. Rolling back..."
             kubectl rollout undo deployment/$DEPLOYMENT -n $NAMESPACE
             curl -X POST -H 'Content-type: application/json' \
