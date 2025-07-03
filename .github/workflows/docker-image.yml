@@ -1,0 +1,48 @@
+name: Deploy to EKS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPO: ${{ secrets.ECR_REPO_NAME }}
+  CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
+  NAMESPACE: ${{ secrets.EKS_NAMESPACE }}
+  DEPLOYMENT: ${{ secrets.K8S_DEPLOYMENT_NAME }}
+  IMAGE_TAG: latest
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build and Push Docker image to ECR
+      run: |
+        docker build -t $ECR_REPO:$IMAGE_TAG .
+        docker tag $ECR_REPO:$IMAGE_TAG 794038257373.dkr.ecr.ap-south-1.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+        docker push 794038257373.dkr.ecr.ap-south-1.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+
+    - name: Deploy to EKS
+      run: |
+        kubectl set image deployment/$DEPLOYMENT dev-twallet-container=794038257373.dkr.ecr.ap-south-1.amazonaws.com/$ECR_REPO:$IMAGE_TAG -n $NAMESPACE
+        kubectl rollout status deployment/$DEPLOYMENT -n $NAMESPACE
