@@ -35,22 +35,20 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Extract repo URI
-        id: ecr
-        run: |
-          echo "REPO_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}" >> $GITHUB_ENV
+        run: echo "REPO_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}" >> $GITHUB_ENV
 
       - name: Generate image tag with timestamp
-        id: vars
         run: |
-          TIMESTAMP=$(date +'%Y-%m-%d-%H-%M-%S')
-          echo "IMAGE_TAG_WITH_DATE=${TIMESTAMP}" >> $GITHUB_ENV
+          echo "IMAGE_TAG_WITH_DATE=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
 
       - name: Build Docker image
         run: |
+          echo "Building Docker image with tags: latest and $IMAGE_TAG_WITH_DATE"
           docker build -t $REPO_URI:$IMAGE_TAG .
           docker tag $REPO_URI:$IMAGE_TAG $REPO_URI:$IMAGE_TAG_WITH_DATE
 
       - name: Push Docker image to ECR
         run: |
+          echo "Pushing Docker images to ECR"
           docker push $REPO_URI:$IMAGE_TAG
           docker push $REPO_URI:$IMAGE_TAG_WITH_DATE
